@@ -47,7 +47,6 @@ Route::middleware(['auth.bja'])->group(function () {
     Route::resource('leads', LeadController::class);
 
     // Tracking Resi
-    Route::get('resi/{resi}/add-status', [ResiController::class, 'show'])->name('resi.show');
     Route::post('resi/{resi}/add-status', [ResiController::class, 'addStatus'])->name('resi.add-status');
     Route::resource('resi', ResiController::class)->except(['destroy']);
 
