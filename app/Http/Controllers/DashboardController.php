@@ -66,7 +66,7 @@ class DashboardController extends Controller
 
         $invToday = Invoice::whereDate('date', today())
             ->selectRaw('sales_id, COUNT(*) as inv_count, COALESCE(SUM(total),0) as revenue')
-            ->groupBy('sales_id')->pluck(null, 'sales_id');
+            ->groupBy('sales_id')->get()->keyBy('sales_id');
 
         $leadTodayBySales = Lead::whereDate('date', today())
             ->selectRaw('sales_id, COUNT(*) as lead_count')
