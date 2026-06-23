@@ -7,10 +7,15 @@ use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\QuotationController;
 use App\Http\Controllers\LeadController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\PostController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\ResiController;
 use App\Http\Controllers\SettingController;
 use Illuminate\Support\Facades\Route;
+
+// Public Blog API
+Route::get('/api/posts', [PostController::class, 'apiIndex'])->name('api.posts.index');
+Route::get('/api/posts/{slug}', [PostController::class, 'apiShow'])->name('api.posts.show');
 
 // Public tracking API
 Route::get('/track/{resiNum}', [ResiController::class, 'track'])->name('resi.track.api');
@@ -45,6 +50,9 @@ Route::middleware(['auth.bja'])->group(function () {
     Route::get('leads/template', [LeadController::class, 'downloadTemplate'])->name('leads.template');
     Route::get('leads/stats', [LeadController::class, 'stats'])->name('leads.stats');
     Route::resource('leads', LeadController::class);
+
+    // Blog
+    Route::resource('posts', PostController::class);
 
     // Tracking Resi
     Route::post('resi/{resi}/add-status', [ResiController::class, 'addStatus'])->name('resi.add-status');
