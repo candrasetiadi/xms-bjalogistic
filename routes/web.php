@@ -32,6 +32,7 @@ Route::middleware(['auth.bja'])->group(function () {
 
     // Clients — search must be before resource to avoid {client} matching "search"
     Route::get('clients/search', [ClientController::class, 'search'])->name('clients.search');
+    Route::post('clients/quick', [ClientController::class, 'storeQuick'])->name('clients.quick');
     Route::resource('clients', ClientController::class);
 
     // Invoices

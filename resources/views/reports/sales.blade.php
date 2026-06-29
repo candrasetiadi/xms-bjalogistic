@@ -107,20 +107,20 @@ function fmtShort($n) {
 
 <div style="background:#fff;border:1px solid #f0f0f0;border-radius:12px;padding:12px 16px;margin-bottom:14px;box-shadow:0 1px 3px rgba(0,0,0,.04);">
     <form id="filter-form" method="GET" action="{{ route('reports.sales') }}" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-        <select name="year" class="sel" style="font-size:12.5px;height:34px;" onchange="this.form.submit()">
+        <select name="year" class="sel" style="font-size:12.5px;height:34px;min-width:80px;" onchange="this.form.submit()">
             <option value="all" {{ $year === 'all' ? 'selected' : '' }}>Semua Tahun</option>
             @foreach($years as $y)
             <option value="{{ $y }}" {{ $year == $y ? 'selected' : '' }}>{{ $y }}</option>
             @endforeach
         </select>
-        <select name="month" class="sel" style="font-size:12.5px;height:34px;" onchange="this.form.submit()">
+        <select name="month" class="sel" style="font-size:12.5px;height:34px;min-width:120px;" onchange="this.form.submit()">
             <option value="" {{ !$month ? 'selected' : '' }}>Semua Bulan</option>
             @foreach(range(1,12) as $m)
             <option value="{{ $m }}" {{ $month == $m ? 'selected' : '' }}>{{ $monthsFull[$m] }}</option>
             @endforeach
         </select>
         @if(session('auth_user.role') === 'admin')
-        <select name="sales_id" class="sel" style="font-size:12.5px;height:34px;" onchange="this.form.submit()">
+        <select name="sales_id" class="sel" style="font-size:12.5px;height:34px;min-width:130px;" onchange="this.form.submit()">
             <option value="" {{ !$salesId ? 'selected' : '' }}>Semua Sales</option>
             @foreach($users as $u)
             <option value="{{ $u->id }}" {{ $salesId == $u->id ? 'selected' : '' }}>{{ $u->name }}</option>

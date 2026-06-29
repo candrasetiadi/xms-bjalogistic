@@ -54,6 +54,29 @@ class ClientController extends Controller
         return redirect()->route('clients.index')->with('success', 'Client berhasil ditambahkan.');
     }
 
+    public function storeQuick(Request $request)
+    {
+        $request->validate(['name' => 'required|string|max:150']);
+
+        $client = Client::create([
+            'id'      => (int)(microtime(true) * 1000),
+            'name'    => $request->name,
+            'company' => $request->company ?? '',
+            'phone'   => $request->phone ?? '',
+            'email'   => $request->email ?? '',
+            'addr'    => $request->addr ?? '',
+            'city'    => $request->city ?? '',
+            'dest'    => '',
+        ]);
+
+        return response()->json([
+            'id'      => $client->id,
+            'name'    => $client->name,
+            'company' => $client->company,
+            'label'   => $client->name . ($client->company ? ' / ' . $client->company : ''),
+        ]);
+    }
+
     public function edit(Client $client)
     {
         return view('clients.edit', compact('client'));

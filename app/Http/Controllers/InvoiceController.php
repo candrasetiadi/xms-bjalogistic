@@ -50,8 +50,8 @@ class InvoiceController extends Controller
     public function store(Request $request)
     {
         $data = $this->validateInvoice($request);
-        $data['rows_json']  = $request->input('rows', []);
-        $data['biaya_json'] = $request->input('biaya', []);
+        $data['rows_json']  = json_decode($request->input('rows_json', '[]'), true) ?: [];
+        $data['biaya_json'] = json_decode($request->input('biaya_json', '[]'), true) ?: [];
 
         $salesId = $data['sales_id'] ?? session('auth_user.id');
         if (!$data['num']) {
@@ -86,8 +86,8 @@ class InvoiceController extends Controller
         $this->authorizeInvoice($invoice);
 
         $data = $this->validateInvoice($request);
-        $data['rows_json']  = $request->input('rows', []);
-        $data['biaya_json'] = $request->input('biaya', []);
+        $data['rows_json']  = json_decode($request->input('rows_json', '[]'), true) ?: [];
+        $data['biaya_json'] = json_decode($request->input('biaya_json', '[]'), true) ?: [];
 
         $invoice->update($data);
 

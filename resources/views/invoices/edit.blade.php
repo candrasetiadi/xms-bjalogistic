@@ -10,6 +10,8 @@
 .iinp:focus{border-color:#CC0000}
 .iinp-num{text-align:right}
 .biaya-row{display:flex;gap:8px;align-items:center;margin-bottom:6px}
+.quick-panel{background:#f9fafb;border:1.5px solid #e5e7eb;border-radius:10px;padding:14px;margin-top:10px}
+.terbilang-live{font-size:11.5px;font-style:italic;color:#6b7280;margin-top:6px;line-height:1.5;min-height:18px}
 </style>
 @endpush
 
@@ -19,7 +21,10 @@
 @csrf @method('PUT')
 
 <div style="display:grid;grid-template-columns:2fr 1fr;gap:20px;align-items:start">
+
+{{-- ── MAIN LEFT ── --}}
 <div>
+    {{-- Info Invoice --}}
     <div class="card" style="margin-bottom:16px">
         <div class="card-title">Info Invoice</div>
         <div class="form-row form-3">
@@ -46,12 +51,13 @@
                 <input type="date" name="due_date" value="{{ $invoice->due_date?->format('Y-m-d') }}" class="inp">
             </div>
         </div>
-        <div class="form-group">
+        <div class="form-group" style="margin-bottom:0">
             <label class="lbl">Tujuan</label>
             <input type="text" name="tujuan" value="{{ $invoice->tujuan }}" class="inp">
         </div>
     </div>
 
+    {{-- Bill / Ship --}}
     <div class="card" style="margin-bottom:16px">
         <div class="card-title">Penagihan & Pengiriman</div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
@@ -71,6 +77,7 @@
         </div>
     </div>
 
+    {{-- Items --}}
     <div class="card" style="margin-bottom:16px">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
             <div class="card-title" style="margin:0">Item / Barang</div>
@@ -101,12 +108,13 @@
         <input type="hidden" name="rows_json" x-bind:value="JSON.stringify(rows)">
     </div>
 
+    {{-- Biaya Tambahan --}}
     <div class="card" style="margin-bottom:16px">
         <div class="card-title">Biaya Tambahan</div>
         <template x-for="(b, i) in biaya" :key="i">
             <div class="biaya-row">
                 <input type="text" x-model="b.label" placeholder="Label biaya" class="inp" style="flex:1">
-                <input type="number" x-model.number="b.amount" @input="recalc()" class="inp" style="width:150px;text-align:right">
+                <input type="number" x-model.number="b.amount" @input="recalc()" placeholder="0" class="inp" style="width:150px;text-align:right">
                 <button type="button" @click="biaya.splice(i,1);recalc()" style="background:none;border:none;cursor:pointer;color:#b91c1c;font-size:18px">×</button>
             </div>
         </template>
@@ -115,15 +123,53 @@
     </div>
 </div>
 
+{{-- ── SIDEBAR RIGHT ── --}}
 <div>
+    {{-- Client --}}
     <div class="card" style="margin-bottom:16px">
-        <div class="card-title">Client</div>
-        <select name="client_id" class="sel" style="width:100%">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+            <div class="card-title" style="margin:0">Client</div>
+            <button type="button" @click="showQuickClient=!showQuickClient"
+                style="font-size:12px;font-weight:700;color:#CC0000;background:none;border:1.5px solid #fca5a5;padding:3px 10px;border-radius:6px;cursor:pointer;"
+                x-text="showQuickClient ? '✕ Tutup' : '+ Client Baru'"></button>
+        </div>
+        <select name="client_id" id="client-select" class="sel" style="width:100%">
             <option value="">— Pilih Client —</option>
             @foreach($clients as $c)
             <option value="{{ $c->id }}" {{ $invoice->client_id == $c->id ? 'selected' : '' }}>{{ $c->name }}{{ $c->company ? ' / '.$c->company : '' }}</option>
             @endforeach
         </select>
+
+        {{-- Quick Add Client --}}
+        <div x-show="showQuickClient" x-transition class="quick-panel">
+            <div style="font-size:11px;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px;">Tambah Client Baru</div>
+            <div class="form-group" style="margin-bottom:8px">
+                <label class="lbl">Nama <span style="color:#CC0000">*</span></label>
+                <input type="text" x-model="qc.name" class="inp" placeholder="Nama client">
+            </div>
+            <div class="form-group" style="margin-bottom:8px">
+                <label class="lbl">Perusahaan</label>
+                <input type="text" x-model="qc.company" class="inp" placeholder="Nama perusahaan">
+            </div>
+            <div class="form-row form-2" style="margin-bottom:8px">
+                <div class="form-group" style="margin-bottom:0">
+                    <label class="lbl">Telepon</label>
+                    <input type="text" x-model="qc.phone" class="inp">
+                </div>
+                <div class="form-group" style="margin-bottom:0">
+                    <label class="lbl">Kota</label>
+                    <input type="text" x-model="qc.city" class="inp">
+                </div>
+            </div>
+            <div class="form-group" style="margin-bottom:10px">
+                <label class="lbl">Email</label>
+                <input type="email" x-model="qc.email" class="inp">
+            </div>
+            <div x-show="qcError" x-text="qcError" style="font-size:12px;color:#CC0000;margin-bottom:8px;"></div>
+            <button type="button" @click="saveQuickClient()"
+                style="width:100%;padding:8px;background:#CC0000;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;"
+                :disabled="qcLoading" x-text="qcLoading ? 'Menyimpan...' : 'Simpan Client'"></button>
+        </div>
     </div>
 
     @if(session('auth_user.role') === 'admin')
@@ -139,6 +185,7 @@
     <input type="hidden" name="sales_id" value="{{ $invoice->sales_id }}">
     @endif
 
+    {{-- Summary --}}
     <div class="card">
         <div class="card-title">Ringkasan</div>
         <div style="display:flex;flex-direction:column;gap:10px;font-size:13.5px">
@@ -153,12 +200,18 @@
                 <span class="fw-700 text-red" style="font-size:16px" x-text="'Rp ' + fmt(grandTotal)"></span>
             </div>
         </div>
+        {{-- Terbilang Live --}}
+        <div style="margin-top:10px;padding:10px 12px;background:#f9fafb;border:1px solid #e5e7eb;border-radius:7px;">
+            <div style="font-size:9.5px;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:.07em;margin-bottom:4px;">Terbilang</div>
+            <div class="terbilang-live" x-text="terbilangStr"></div>
+        </div>
         <input type="hidden" name="sub_total" x-bind:value="subTotal">
         <input type="hidden" name="total" x-bind:value="grandTotal">
         <button type="submit" class="btn btn-red" style="width:100%;margin-top:16px;justify-content:center">Update Invoice</button>
         <a href="{{ route('invoices.index') }}" class="btn btn-outline" style="width:100%;margin-top:8px;justify-content:center">Batal</a>
     </div>
 </div>
+
 </div>
 </form>
 </div>
@@ -166,29 +219,90 @@
 
 @push('scripts')
 <script>
+function terbilang(n) {
+    n = Math.round(Math.abs(n));
+    if (n === 0) return 'nol rupiah';
+    const sat = ['','satu','dua','tiga','empat','lima','enam','tujuh','delapan','sembilan','sepuluh','sebelas','dua belas','tiga belas','empat belas','lima belas','enam belas','tujuh belas','delapan belas','sembilan belas'];
+    function spell(x) {
+        if (x < 20) return sat[x];
+        if (x < 100) { let s=x%10; return sat[Math.floor(x/10)]+' puluh'+(s?' '+sat[s]:''); }
+        if (x < 200) return 'seratus'+(x-100?' '+spell(x-100):'');
+        if (x < 1000) { let s=x%100; return sat[Math.floor(x/100)]+' ratus'+(s?' '+spell(s):''); }
+        if (x < 2000) return 'seribu'+(x-1000?' '+spell(x-1000):'');
+        if (x < 1e6) { let s=x%1000; return spell(Math.floor(x/1000))+' ribu'+(s?' '+spell(s):''); }
+        if (x < 1e9) { let s=x%1e6; return spell(Math.floor(x/1e6))+' juta'+(s?' '+spell(s):''); }
+        let s=x%1e9; return spell(Math.floor(x/1e9))+' miliar'+(s?' '+spell(s):'');
+    }
+    return spell(n) + ' rupiah';
+}
+
 function invoiceForm() {
+    const existingBiaya = @json($invoice->biaya_json ?? []);
+    const defaultBiaya = [
+        { label:'Biaya Packing', amount:0 },
+        { label:'Biaya Asuransi', amount:0 },
+        { label:'Biaya Handling', amount:0 },
+    ];
+
     return {
         rows: @json($invoice->rows_json ?? []),
-        biaya: @json($invoice->biaya_json ?? []),
+        biaya: existingBiaya.length ? existingBiaya : defaultBiaya,
         calcMode: '{{ $invoice->calc_mode ?? 'kg' }}',
         disc: {{ $invoice->disc ?? 0 }},
         subTotal: 0, totalBiaya: 0, grandTotal: 0,
+        terbilangStr: '',
+
+        showQuickClient: false,
+        qc: { name:'', company:'', phone:'', email:'', city:'' },
+        qcLoading: false,
+        qcError: '',
 
         init() {
             if (!this.rows.length) this.rows = [{desc:'',koli:0,kg:0,vol:0,harga:0}];
             this.recalc();
         },
+
         rowSubtotal(row) {
             const qty = this.calcMode === 'kg' ? row.kg : row.vol;
             return qty * row.harga;
         },
+
         recalc() {
-            this.subTotal = this.rows.reduce((s,r) => s + this.rowSubtotal(r), 0);
+            this.subTotal   = this.rows.reduce((s,r) => s + this.rowSubtotal(r), 0);
             this.totalBiaya = this.biaya.reduce((s,b) => s + (parseFloat(b.amount)||0), 0);
             this.grandTotal = this.subTotal + this.totalBiaya - (parseFloat(this.disc)||0);
+            this.terbilangStr = terbilang(this.grandTotal);
         },
+
         fmt(n) { return Math.round(n).toLocaleString('id-ID'); },
-        prepareSubmit() { this.recalc(); }
+
+        prepareSubmit() { this.recalc(); },
+
+        saveQuickClient() {
+            if (!this.qc.name.trim()) { this.qcError = 'Nama client wajib diisi.'; return; }
+            this.qcLoading = true;
+            this.qcError   = '';
+            fetch('{{ route('clients.quick') }}', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Accept': 'application/json' },
+                body: JSON.stringify(this.qc)
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.id) {
+                    const sel = document.getElementById('client-select');
+                    const opt = new Option(data.label, data.id, true, true);
+                    sel.add(opt);
+                    sel.value = data.id;
+                    this.qc = { name:'', company:'', phone:'', email:'', city:'' };
+                    this.showQuickClient = false;
+                } else {
+                    this.qcError = data.message || 'Gagal menyimpan.';
+                }
+            })
+            .catch(() => { this.qcError = 'Terjadi kesalahan.'; })
+            .finally(() => { this.qcLoading = false; });
+        }
     }
 }
 </script>
